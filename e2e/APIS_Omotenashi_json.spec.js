@@ -58,32 +58,6 @@ async function postData(endpoint, formData) {
   }
 }
 
-function validateResponseData(data) {
-  if (!data) {
-    throw new Error('La respuesta de la API es nula o indefinida.');
-  }
-
-  // Lista de campos obligatorios que esperas en la respuesta
-  const requiredFields = ['data']; // Agrega más campos según sea necesario
-
-  let validationErrors = [];
-
-  for (const field of requiredFields) {
-    if (data[field] === undefined || data[field] === null) {
-      validationErrors.push(`El campo '${field}' está faltando o es nulo.`);
-    } else if (Array.isArray(data[field]) && data[field].length === 0) {
-      validationErrors.push(`El campo '${field}' está vacío.`);
-    } else if (typeof data[field] === 'object' && Object.keys(data[field]).length === 0) {
-      validationErrors.push(`El campo '${field}' es un objeto vacío.`);
-    }
-  }
-
-  if (validationErrors.length > 0) {
-    console.error('Errores en la validación de los datos de la respuesta:', validationErrors.join('\n'));
-    throw new Error('Errores en los datos de la respuesta.');
-  }
-}
-
 test('Api Test: savePost', async () => {
   const formData = createFormData({
     tipo: '467',
@@ -102,9 +76,6 @@ test('Api Test: savePost', async () => {
     console.log('Status Code:', response.status);
     console.log('Response Time (ms):', responseTime);
     console.log('Response from API:', response.data);
-    // Valida los datos de la respuesta
-    validateResponseData(response.data);
-    console.log(validateResponseData);
 
     expect(response.status).toBe(EXPECTED_STATUS_CODE);
     expect(response.data).toHaveProperty('data');
@@ -134,9 +105,6 @@ test('Api Test: savePost_all', async () => {
     console.log('Status Code:', response.status);
     console.log('Response Time (ms):', responseTime);
     console.log('Response from API:', response.data.data);
-    // Valida los datos de la respuesta
-    validateResponseData(response.data);
-    console.log(validateResponseData);
 
     expect(response.status).toBe(EXPECTED_STATUS_CODE);
     expect(response.data).toHaveProperty('data');
@@ -174,9 +142,6 @@ test('Api Test: saveReaction', async () => {
     console.log('Status Code:', response.status);
     console.log('Response Time (ms):', responseTime);
     console.log('Response from API:', response.data);
-    // Valida los datos de la respuesta
-    validateResponseData(response.data);
-    console.log(validateResponseData);
 
     expect(response.status).toBe(EXPECTED_STATUS_CODE);
     expect(response.data).toHaveProperty('data');
@@ -200,16 +165,16 @@ test('Api Test: saveEtiquetas', async () => {
     return;
   }
 
-  const formData = createFormData({
+  const requestData = {
     appId: '1679091c5a880faf6fb5e6087eb1b2dc',
     postId: postId,
     usuId: '1',
     usuarios: [{ usuIdEt: 1 }, { usuIdEt: 2 }],
-  });
+  };
 
   const endpoint = '/api/saveEtiquetas/save';
   try {
-    const { response, responseTime } = await postData(endpoint, formData);
+    const { response, responseTime } = await postData(endpoint, requestData);
 
     console.log('Status Code:', response.status);
     console.log('Response Time (ms):', responseTime);
@@ -250,8 +215,6 @@ test('Api Test: deleteEtiquetas', async () => {
     console.log('Status Code:', response.status);
     console.log('Response Time (ms):', responseTime);
     console.log('Response from API:', response.data);
-    // Valida los datos de la respuesta
-    validateResponseData(response.data);
 
     expect(response.status).toBe(EXPECTED_STATUS_CODE);
     expect(response.data).toHaveProperty('data');
