@@ -8,8 +8,11 @@ const BASE_URL = 'https://api.qa.epicentro-digital.com';
 const TOKEN = '214|kocvVV8hq63n9bfpKkJjadPv5azEpNuLIJOFj9XB';
 const EXPECTED_STATUS_CODE = 200;
 const POST_ID_FILE = path.join(__dirname, 'postId.json');
+const ETIQ_ID_FILE = path.join(__dirname, 'etiqId.json');
+
 
 let postId; // Variable global para almacenar el postId
+let etiqId;//Variable global para almacenar el etiqId
 
 function createFormData(params) {
   const formData = new FormData();
@@ -182,30 +185,43 @@ test('Api Test: saveEtiquetas', async () => {
 
     expect(response.status).toBe(EXPECTED_STATUS_CODE);
     expect(response.data).toHaveProperty('data');
+
+    // Recorre todos los elementos de 'data' y guarda el 'etiqId'
+    const etiqIds = response.data.data.map(item => item.etiqId);
+    if (etiqIds.length === 0) {
+      throw new Error('No se pudo obtener etiqId.');
+    }
+    // Guarda todos los etiqIds en un archivo
+    fs.writeFileSync(ETIQ_ID_FILE, JSON.stringify({ etiqIds }));
+    console.log('etiqIds guardados en archivo:', etiqIds); // Mensaje de depuración
   } catch (error) {
     console.error('Error durante la prueba saveEtiquetas:', error.message);
   }
 });
 
+
 test('Api Test: deleteEtiquetas', async () => {
-  if (!fs.existsSync(POST_ID_FILE)) {
-    console.error('postId no está disponible.');
+  if (!fs.existsSync(ETIQ_ID_FILE)) {
+    console.error('etiqId no está disponible.');
     return;
   }
 
   // Lee el archivo temporal antes de la prueba
-  const data = JSON.parse(fs.readFileSync(POST_ID_FILE, 'utf8'));
-  postId = data.postId;
+  const data = JSON.parse(fs.readFileSync(ETIQ_ID_FILE, 'utf8'));
+  const etiqIds = data.etiqIds;
 
-  if (!postId) {
-    console.error('postId no está definido en el archivo.');
+  if (!etiqIds || etiqIds.length === 0) {
+    console.error('etiqIds no están definidos en el archivo.');
     return;
   }
 
+  // Supongamos que eliminaremos el primer etiqId para la prueba
+  const etiqId = etiqIds[0];
+
   const requestData = {
-    appId: '1679091c5a880faf6fb5e6087eb1b2dc', // Verifica que este appId sea correcto
-    postId: postId,  // Usa el postId creado
-    etiqId: '11',
+    appId: '1679091c5a880faf6fb5e6087eb1b2dc',
+    postId: postId, // Asegúrate de que postId esté definido como en los otros tests
+    etiqId: etiqId,
   };
 
   const endpoint = '/api/saveEtiquetas/delete';
@@ -219,6 +235,6 @@ test('Api Test: deleteEtiquetas', async () => {
     expect(response.status).toBe(EXPECTED_STATUS_CODE);
     expect(response.data).toHaveProperty('data');
   } catch (error) {
-    console.error('Error durante la prueba saveEtiquetas:', error.message);
+    console.error('Error durante la prueba deleteEtiquetas:', error.message);
   }
 });
